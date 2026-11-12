@@ -17,10 +17,24 @@ describe('first raid', () => {
     expect(raid.name).toBe('Тунг-Тунг Сахур');
     player.position.z = 23;
     raid.update(0.05);
-    raid.update(0.05);
+    expect(raid.hatching).toBe(4);
+    expect(raid.count).toBe(0);
+    raid.update(4);
+    raid.update(4);
     expect(raid.count).toBe(1);
     expect(raid.name).toBe('Кот в тапке');
     expect(player.children).toHaveLength(0);
+  });
+
+  it('returns the target to the lab after a catch', () => {
+    const player = new Group();
+    player.position.z = -15;
+    const raid = new Raid(new Scene(), player);
+    raid.take();
+    raid.lose(true);
+    expect(raid.failed).toContain('Дрон');
+    expect(raid.canTake).toBe(true);
+    expect(raid.count).toBe(0);
   });
 
   it('resets an expired raid without advancing the collection', () => {

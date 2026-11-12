@@ -1,8 +1,9 @@
 import * as T from 'three';
+import { balance } from '../config/balance';
+import { Progress } from './Progress';
 
-const lootPoint = { x: 0, z: -15 };
-const returnPoint = { x: 0, z: 23 };
-const escapeSeconds = 19;
+const lootPoint = balance.loot;
+const returnPoint = balance.incubator;
 const memes = [
   { name: 'Тунг-Тунг Сахур', color: '#9a502d', accent: '#ffba67' },
   { name: 'Кот в тапке', color: '#7b66de', accent: '#ffd58d' },
@@ -59,40 +60,62 @@ function createMeme(index: number, color: string, accent: string) {
 
 export class Raid {
   private readonly figures = memes.map((meme, index) => createMeme(index, meme.color, meme.accent));
-  private index = 0;
   private remaining = 0;
   private phase = 0;
+  private incubation = 0;
+  private failure = 0;
+  private caught = false;
 
-  constructor(private readonly scene: T.Scene, private readonly player: T.Group) {
+  constructor(private readonly scene: T.Scene, private readonly player: T.Group,
+    readonly progress = new Progress()) {
     // Keep the full set in the scene so the game can dispose all its resources.
     scene.add(...this.figures);
-    this.figures.forEach((figure, index) => { figure.visible = index === 0; });
-    this.displayLoot();
+    this.figures.forEach((figure, index) => {
+      figure.visible = index < this.count;
+      if (figure.visible) this.displayCollected(index);
+    });
+    if (progress.incubating) this.displayIncubation();
+    else this.displayLoot();
   }
 
   get carrying() { return this.remaining > 0; }
-  get count() { return this.index; }
+  get count() { return this.progress.count; }
+  get hatching() { return Math.ceil(this.incubation); }
+  get failed() { return this.failure > 0 ? this.caught ? 'Дрон поймал тебя. Попробуй снова!' : 'Время вышло. Добыча вернулась в лабораторию.' : ''; }
   get total() { return memes.length; }
   get seconds() { return Math.ceil(this.remaining); }
-  get name() { return memes[this.index]?.name; }
+  get name() { return memes[this.count]?.name; }
+  get collection() { return memes.slice(0, this.count).map(meme => meme.name); }
 
   get canTake() {
-    return !this.carrying && !!this.name && this.distanceTo(lootPoint) < 2.1;
+    return !this.carrying && !this.progress.incubating && !!this.name && this.distanceTo(lootPoint) < 2.1;
   }
 
   take() {
     if (!this.canTake) return;
-    const figure = this.figures[this.index]!;
+    const figure = this.figures[this.count]!;
     this.player.add(figure);
     figure.position.set(0.67, 0.7, 0);
     figure.rotation.set(0, 0, -0.16);
     figure.scale.setScalar(0.53);
-    this.remaining = escapeSeconds;
+    this.remaining = balance.escapeSeconds;
+    this.failure = 0;
   }
 
   update(dt: number) {
-    const figure = this.figures[this.index];
+    this.failure = Math.max(0, this.failure - dt);
+    const figure = this.figures[this.count];
     if (!figure) return;
+    if (this.progress.incubating) {
+      this.incubation = Math.max(0, this.incubation - dt);
+      figure.rotation.y += dt * 1.4;
+      if (this.incubation === 0) {
+        this.displayCollected(this.count);
+        this.progress.hatch();
+        this.displayLoot();
+      }
+      return;
+    }
     if (!this.carrying) {
       this.phase += dt;
       figure.position.y = 0.28 + Math.sin(this.phase * 2.5) * 0.10;
@@ -101,21 +124,41 @@ export class Raid {
     }
 
     if (this.distanceTo(returnPoint) < 2.35) {
-      this.scene.add(figure);
-      figure.position.set([-6.5, 6.5, -6.5][this.index]!, 0.20, [19, 19, 24][this.index]!);
-      figure.scale.setScalar(1.1);
-      figure.rotation.set(0, Math.PI, 0);
-      this.index++;
       this.remaining = 0;
-      this.displayLoot();
+      this.progress.startIncubation();
+      this.displayIncubation();
       return;
     }
-    this.remaining = Math.max(0, this.remaining - dt);
-    if (!this.carrying) this.displayLoot();
+    if (dt >= this.remaining) this.lose(false);
+    else this.remaining -= dt;
+  }
+
+  lose(caught: boolean) {
+    if (!this.carrying) return;
+    this.remaining = 0;
+    this.failure = 3;
+    this.caught = caught;
+    this.displayLoot();
+  }
+
+  private displayIncubation() {
+    const figure = this.figures[this.count]!;
+    this.incubation = balance.incubation[this.count]!;
+    this.scene.add(figure);
+    figure.visible = true;
+    figure.position.set(returnPoint.x, 0.24, returnPoint.z);
+    figure.scale.setScalar(0.76);
+  }
+
+  private displayCollected(index: number) {
+    const figure = this.figures[index]!;
+    figure.position.set(index === 1 ? 6.5 : -6.5, 0.20, index === 2 ? 24 : 19);
+    figure.scale.setScalar(1.1);
+    figure.rotation.set(0, Math.PI, 0);
   }
 
   private displayLoot() {
-    const figure = this.figures[this.index];
+    const figure = this.figures[this.count];
     if (!figure) return;
     this.scene.add(figure);
     figure.visible = true;

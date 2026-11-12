@@ -3,6 +3,9 @@ import { FollowCamera } from '../camera/FollowCamera';
 import { Input } from '../player/Input';
 import { Player } from '../player/Player';
 import { Raid } from '../progression/Raid';
+import { Progress } from '../progression/Progress';
+import { Guardian } from '../enemies/Guardian';
+import { balance } from '../config/balance';
 import { Hud, element } from '../ui/Hud';
 import { createWorld, locationAt } from '../world/World';
 
@@ -36,7 +39,15 @@ export class Game {
     const { walls, labels } = createWorld(this.scene);
     this.textures = labels;
     const player = new Player(this.scene);
-    const raid = new Raid(this.scene, player.root);
+    let storage: Storage | undefined;
+    try { storage = window.localStorage; } catch { /* Persistence is optional. */ }
+    const progress = new Progress(storage);
+    const raid = new Raid(this.scene, player.root, progress);
+    const guardian = new Guardian(this.scene);
+    let saveIn = 3;
+    this.hud.upgrade.addEventListener('click', () => {
+      if (!this.paused && locationAt(player.root.position.x, player.root.position.z) === 'База') progress.upgrade();
+    }, { signal: this.events.signal });
     const input = new Input(this.canvas, element('stick'), element('knob'));
     this.input = input;
     const options = { signal: this.events.signal };
@@ -67,12 +78,14 @@ export class Game {
     }, options);
 
     const pause = () => {
+      progress.save();
       input.reset();
       this.paused = true;
       this.last = 0;
       if (!this.contextLost) this.hud.show('Пауза', 'Продолжи, чтобы вернуться на карту.', true);
     };
     window.addEventListener('blur', pause, options);
+    window.addEventListener('pagehide', () => progress.save(), options);
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) pause();
     }, options);
@@ -101,10 +114,21 @@ export class Game {
       this.last = time;
       this.follow.turn(input.lookX, input.lookY);
       input.lookX = input.lookY = 0;
-      player.update(dt, input.right, input.forward, this.follow.yaw, walls);
+      const { x: oldX, z: oldZ } = player.root.position;
+      player.update(dt, input.right, input.forward, this.follow.yaw, walls, progress.speed);
+      const { x, z } = player.root.position;
+      const pad = balance.trainingPad;
+      const onPad = Math.abs(x - pad.x) < pad.halfWidth && Math.abs(z - pad.z) < pad.halfDepth;
+      progress.update(dt, onPad && Math.hypot(x - oldX, z - oldZ) > dt * 0.5);
       this.follow.update(dt, player.root.position, walls);
       raid.update(dt);
-      this.hud.update(locationAt(player.root.position.x, player.root.position.z), raid);
+      if (guardian.update(dt, player.root.position, raid.carrying && z < 15, raid.count, walls)) raid.lose(true);
+      this.hud.update(locationAt(x, z), raid, onPad);
+      saveIn -= dt;
+      if (saveIn <= 0) {
+        saveIn = 3;
+        progress.save();
+      }
       renderer.render(this.scene, this.follow.camera);
     });
   }

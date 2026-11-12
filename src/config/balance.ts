@@ -1,0 +1,15 @@
+export const balance = {
+  baseSpeed: 5.8,
+  maxTraining: 10,
+  trainingRate: 1.5,
+  trainingBonus: 0.10,
+  speedBonus: 0.55,
+  speedPrices: [24, 60, 120],
+  income: [4, 8, 14],
+  incubation: [4, 6, 8],
+  guardSpeed: [4.7, 5.6, 6.3],
+  escapeSeconds: 19,
+  trainingPad: { x: 6.5, z: 24, halfWidth: 1.4, halfDepth: 2.1 },
+  loot: { x: 0, z: -15 },
+  incubator: { x: 0, z: 23 },
+} as const;

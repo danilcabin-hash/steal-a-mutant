@@ -61,9 +61,9 @@ export class Player {
     this.root.add(shadow);
   }
 
-  update(dt: number, right: number, forward: number, yaw: number, walls: readonly Wall[]) {
+  update(dt: number, right: number, forward: number, yaw: number, walls: readonly Wall[], maxSpeed: number) {
     const norm = Math.max(1, Math.hypot(right, forward));
-    const speed = 5.8 / norm;
+    const speed = maxSpeed / norm;
     const cos = Math.cos(yaw);
     const sin = Math.sin(yaw);
     const easing = 1 - Math.exp(-dt * 16);
@@ -80,7 +80,7 @@ export class Player {
     if (canStand(pos.x, z, 0.43, walls)) pos.z = z;
     else this.velocity.y = 0;
 
-    const moving = Math.min(this.velocity.length() / 5.8, 1);
+    const moving = Math.min(this.velocity.length() / maxSpeed, 1);
     if (moving > 0.02) {
       const angle = Math.atan2(-this.velocity.x, -this.velocity.y) - this.model.rotation.y;
       this.model.rotation.y += Math.atan2(Math.sin(angle), Math.cos(angle)) * easing;
