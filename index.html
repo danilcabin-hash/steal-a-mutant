@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#b3e2ff" />
+    <title>Укради Мутанта!</title>
+  </head>
+  <body>
+    <main id="game" aria-label="Укради Мутанта!">
+      <canvas id="scene" aria-label="Трёхмерная игровая карта"></canvas>
+      <header class="hud">
+        <h1><span>Укради</span> Мутанта!</h1>
+        <div class="hud-tools">
+          <div class="location"><span></span><strong id="zone">База</strong></div>
+          <button id="graphics" type="button" aria-pressed="true" title="Переключить качество графики">Графика · Лёгкая</button>
+        </div>
+      </header>
+      <div id="hint" class="hint" role="status">Найди мем-персонажа в лаборатории</div>
+      <div id="collection" class="collection">Мемы 0 / 3</div>
+      <button id="take" class="take" type="button" hidden>Забрать</button>
+      <aside class="desktop-controls"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Движение <span></span> Перетяни мышью для обзора</aside>
+      <div id="stick" class="stick" aria-label="Джойстик движения"><div id="knob"></div></div>
+      <div class="touch-hint">Смахни по сцене<br />для обзора</div>
+      <section id="notice" class="notice" role="status" hidden>
+        <h2 id="notice-title"></h2><p id="notice-body"></p>
+        <button id="resume" type="button">Продолжить</button>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

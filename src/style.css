@@ -1,0 +1,38 @@
+:root { font-family: "Nunito", system-ui, sans-serif; color: #21183d; background: #b3e2ff; }
+* { box-sizing: border-box; }
+body { margin: 0; overflow: hidden; overscroll-behavior: none; }
+#game { position: relative; width: 100%; height: 100dvh; overflow: hidden; user-select: none; }
+#scene { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+#scene:active { cursor: grabbing; }
+.hud { position: absolute; inset: max(18px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) auto max(22px, env(safe-area-inset-left)); display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; pointer-events: none; }
+h1 { margin: 0; padding: 9px 17px 12px; background: #271b46; color: #fff; border: 2px solid #fff; border-radius: 17px; box-shadow: 0 5px #271b4670; font-size: clamp(16px, 3vw, 32px); font-weight: 1000; letter-spacing: -.045em; line-height: 1.05; }
+h1 span { color: #aaf675; }
+.location { display: flex; align-items: center; gap: 8px; padding: 9px 13px; border: 2px solid #fff; border-radius: 99px; background: #f7f0ff; box-shadow: 0 4px #271b4635; font-size: clamp(12px, 2vw, 15px); }
+.location span { width: 9px; height: 9px; background: #61c563; border-radius: 50%; }
+.hud-tools { display: grid; justify-items: end; gap: 8px; }
+#graphics { pointer-events: auto; color: #fff; background: #271b46; padding: 7px 10px; border: 1px solid #fff8; border-radius: 10px; font: 750 11px system-ui, sans-serif; white-space: nowrap; cursor: pointer; }
+#graphics:disabled { display: none; }
+.hint, .desktop-controls { position: absolute; left: 50%; width: max-content; max-width: 92%; transform: translateX(-50%); text-align: center; pointer-events: none; }
+.hint { bottom: 73px; padding: 8px 15px; background: #fffaf0; border: 2px solid #fff; border-radius: 14px; box-shadow: 0 4px #271b4635; font-weight: 850; font-size: clamp(13px, 2vw, 16px); }
+.hint[data-alarm="true"] { background: #9f2742; color: #fff; }
+.collection { position: absolute; top: max(87px, calc(env(safe-area-inset-top) + 65px)); left: max(22px, env(safe-area-inset-left)); padding: 6px 10px; color: #fff; background: #271b46eb; border-radius: 10px; font-weight: 850; font-size: 13px; pointer-events: none; }
+.take { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); padding: 11px 16px; border: 2px solid #fff; border-radius: 12px; background: #bef67f; color: #21183d; box-shadow: 0 4px #271b4680; font: inherit; font-weight: 850; cursor: pointer; touch-action: manipulation; }
+.desktop-controls { bottom: 20px; padding: 8px 11px; border-radius: 12px; background: #21183deb; color: #fff; font-size: 12px; }
+.desktop-controls span { display: inline-block; margin: 0 8px; width: 1px; height: 12px; background: #ffffff60; vertical-align: middle; }
+kbd { display: inline-block; margin-right: 3px; padding: 2px 5px; background: #4a396b; border-radius: 4px; }
+.stick, .touch-hint { display: none; }
+.notice { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(88%, 420px); padding: 22px; text-align: center; border: 3px solid #fff; border-radius: 20px; background: #271b46; color: #fff; box-shadow: 0 8px #271b4670; }
+.notice h2 { margin: 0; }
+.notice button { border: 0; background: #aaf675; color: #21183d; border-radius: 10px; padding: 9px 14px; font: inherit; font-weight: 800; cursor: pointer; }
+@media (pointer: coarse) {
+  .desktop-controls { display: none; }
+  .stick { display: grid; place-items: center; position: absolute; width: 104px; height: 104px; left: max(22px, env(safe-area-inset-left)); bottom: max(19px, env(safe-area-inset-bottom)); border: 2px solid #fff9; border-radius: 50%; background: #271b4666; touch-action: none; }
+  #knob { width: 47px; height: 47px; border: 2px solid #fff; border-radius: 50%; background: #d7baff; pointer-events: none; }
+  .touch-hint { display: block; position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(21px, env(safe-area-inset-bottom)); padding: 7px 9px; border-radius: 10px; background: #271b46d9; color: #fff; font-size: 11px; text-align: right; pointer-events: none; }
+  .hint { bottom: max(130px, calc(env(safe-area-inset-bottom) + 116px)); }
+  .take { bottom: max(176px, calc(env(safe-area-inset-bottom) + 164px)); }
+}
+@media (max-width: 600px) {
+  .hud { inset-inline: 12px; }
+  .collection { top: max(64px, calc(env(safe-area-inset-top) + 49px)); left: 12px; }
+}
